@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мастер Модов Minecraft</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        :root {
+            --mc-green: #48a02c;
+            --mc-green-hover: #5dbb3b;
+            --mc-shadow: #2e661c;
+            --text-main: #1c1c1c;
+            --text-secondary: #5e5e5e;
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --border-color: rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f0f2f5 linear-gradient(135deg, #ffffff 0%, #e8f0fe 100%);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            /* Добавлены отступы сверху и снизу для баланса */
+            padding: 40px 20px;
+        }
+
+        .bg-decoration {
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(72, 160, 44, 0.05) 0%, transparent 70%);
+            top: -100px;
+            right: -100px;
+            z-index: -1;
+        }
+
+        .crafter-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 24px;
+            /* Оптимизированы внутренние отступы */
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .input-box {
+            margin-bottom: 24px;
+        }
+
+        .input-box label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            margin-left: 4px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: #fff;
+            border: 1px solid var(--border-color);
+            padding: 14px;
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 16px;
+            transition: all 0.25s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--mc-green);
+            box-shadow: 0 0 0 4px rgba(72, 160, 44, 0.1);
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.4);
+            position: relative;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--mc-green);
+            background: rgba(72, 160, 44, 0.03);
+            transform: translateY(-2px);
+        }
+
+        .drop-zone.active {
+            border-color: var(--mc-green);
+            background: rgba(72, 160, 44, 0.08);
+            border-style: solid;
+        }
+
+        .drop-zone span {
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: block;
+            margin-top: 6px;
+        }
+
+        .drop-zone input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .btn-craft {
+            width: 100%;
+            background: var(--mc-green);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 0 var(--mc-shadow);
+            transition: all 0.1s;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-craft:hover {
+            background: var(--mc-green-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-craft:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 var(--mc-shadow);
+        }
+
+        .btn-craft:disabled {
+            background: #cbd5e0;
+            box-shadow: 0 4px 0 #a0aec0;
+            cursor: not-allowed;
+        }
+
+        .footer-note {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .icon {
+            font-size: 24px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="bg-decoration"></div>
+
+    <div class="crafter-card">
+        <div class="header">
+            <h1><span>🛠️</span> Сборка Модов</h1>
+        </div>
+
+        <div class="input-box">
+            <label>Название твоего предмета</label>
+            <input type="text" id="itemName" placeholder="Например: Стул" autocomplete="off">
+        </div>
+
+
+
+        <div class="input-box">
+            <label>3D Модель (JSON)</label>
+            <div class="drop-zone" id="mZone">
+                <div class="icon">📦</div>
+                <span id="mLabel">Нажми или перетащи файл модели</span>
+                <input type="file" id="modelFile" accept=".json">
+            </div>
+        </div>
+
+        <!-- Container for dynamic texture inputs -->
+        <div id="textureInputs"></div>
+
+        <button id="buildBtn" class="btn-craft" disabled>Сначала выбери модель</button>
+
+        <div class="footer-note">
+            Версия Minecraft Fabric 1.21.x<br>
+            После скачивания положи файл в папку <b>/mods</b>
+        </div>
+    </div>
+
+    <script>
+        const MOD_ID = "masterclass";
+        const BLOCK_ID = "custom_block";
+        const TEMPLATE_URL = 'template.jar';
+
+        const DISPLAY_SETTINGS = {
+            "thirdperson_righthand": { "rotation": [75, 45, 0], "translation": [0, 2.5, 0], "scale": [0.375, 0.375, 0.375] },
+            "firstperson_righthand": { "rotation": [0, 45, 0], "translation": [0, 0, 0], "scale": [0.4, 0.4, 0.4] },
+            "gui": { "rotation": [30, 225, 0], "translation": [0, 0, 0], "scale": [0.625, 0.625, 0.625] }
+        };
+
+        let requiredTextures = {}; // Map: texture_path_in_json -> { keys: [], fileInputId: "" }
+
+        const setupInput = (inputId, labelId) => {
+            const input = document.getElementById(inputId);
+            const label = document.getElementById(labelId);
+            input.onchange = () => {
+                if (input.files[0]) {
+                    label.innerText = `Выбрано: ${input.files[0].name}`;
+                    label.parentElement.classList.add('active');
+                }
+            };
+        };
+
+        // Initial setup for model file only
+        const modelInput = document.getElementById('modelFile');
+        const modelLabel = document.getElementById('mLabel');
+
+        modelInput.onchange = async () => {
+            if (modelInput.files[0]) {
+                modelLabel.innerText = `Выбрано: ${modelInput.files[0].name}`;
+                modelLabel.parentElement.classList.add('active');
+                await analyzeModel(modelInput.files[0]);
+                document.getElementById('buildBtn').disabled = false;
+                document.getElementById('buildBtn').innerText = "Создать файл мода";
+            }
+        };
+
+        const analyzeModel = async (file) => {
+            try {
+                const text = await file.text();
+                let json;
+                try {
+                    json = JSON.parse(text);
+                } catch (e) {
+                    alert("Ошибка: Некорректный JSON файл!");
+                    return;
+                }
+
+                const textureContainer = document.getElementById('textureInputs');
+                textureContainer.innerHTML = ''; // Clear previous inputs
+                requiredTextures = {};
+
+                if (!json.textures) {
+                    alert("В модели нет раздела 'textures'. Добавь хотя бы одну текстуру.");
+                    return;
+                }
+
+                // Check for Bedrock/Generic format (explicit version OR missing axis in rotation)
+                if (json.format_version || (json.elements && json.elements.some(el => el.rotation && !el.rotation.axis))) {
+                    console.log("⚠️ Обнаружен формат Bedrock/Generic. Попытка автоматической конвертации...");
+                    // Ensure format_version is set for the build step to notice
+                    if (!json.format_version) json.format_version = "generic";
+                }
+
+                // Group textures by their path (value)
+                // Example: "0": "block/wood", "particle": "block/wood" -> "block/wood": ["0", "particle"]
+                for (const [key, value] of Object.entries(json.textures)) {
+                    if (value.startsWith('#')) continue; // Skip references for now
+
+                    if (!requiredTextures[value]) {
+                        requiredTextures[value] = { keys: [], fileInputId: `tex_${Object.keys(requiredTextures).length}` };
+                    }
+                    requiredTextures[value].keys.push(key);
+                }
+
+                // Generate UI for each unique texture required
+                if (Object.keys(requiredTextures).length === 0) {
+                    const warning = document.createElement('div');
+                    warning.className = 'input-box';
+                    warning.innerHTML = '<label style="color: orange;">⚠️ Модель использует только ссылки (#...) или не имеет текстур.</label>';
+                    textureContainer.appendChild(warning);
+                } else {
+                    for (const [path, data] of Object.entries(requiredTextures)) {
+                        const box = document.createElement('div');
+                        box.className = 'input-box';
+
+                        const safeId = data.fileInputId;
+                        const labelId = `${safeId}_label`;
+
+                        box.innerHTML = `
+                        <label>Текстура для: <b>${path}</b> <span style="font-weight:normal; opacity:0.7;">(ключи: ${data.keys.join(', ')})</span></label>
+                        <div class="drop-zone">
+                            <div class="icon">🖼️</div>
+                            <span id="${labelId}">Нажми или перетащи файл (PNG)</span>
+                            <input type="file" id="${safeId}" accept=".png">
+                        </div>
+                    `;
+                        textureContainer.appendChild(box);
+
+                        // Activate new input logic
+                        setupInput(safeId, labelId);
+                    }
+                }
+
+            } catch (err) {
+                console.error(err);
+                alert("Ошибка чтения файла модели!");
+            }
+        };
+
+        document.getElementById('buildBtn').onclick = async () => {
+            const name = document.getElementById('itemName').value || "Новый Предмет";
+            const modelFile = document.getElementById('modelFile').files[0];
+
+            if (!modelFile) return alert("Сначала выбери модель!");
+
+            // Validate all texture inputs
+            const textureFiles = {}; // map: original_path -> File
+            for (const [origPath, data] of Object.entries(requiredTextures)) {
+                const input = document.getElementById(data.fileInputId);
+                if (!input.files[0]) {
+                    return alert(`Пожалуйста, загрузи текстуру для "${origPath}"!`);
+                }
+                textureFiles[origPath] = input.files[0];
+            }
+
+            const btn = document.getElementById('buildBtn');
+            btn.disabled = true;
+            btn.innerText = "⏳ Собираем мод...";
+
+            try {
+                const resp = await fetch(`${TEMPLATE_URL}?cache=${Date.now()}`);
+                if (!resp.ok) throw new Error(`Не найден файл ${TEMPLATE_URL}! Положите его рядом с HTML.`);
+                const zip = await JSZip.loadAsync(await resp.arrayBuffer());
+
+                const modelData = JSON.parse(await modelFile.text());
+
+                // Rewrite textures logic
+                const newTextures = {};
+
+                // 1. Copy over references (start with #)
+                for (const [key, value] of Object.entries(modelData.textures || {})) {
+                    if (value.startsWith('#')) {
+                        newTextures[key] = value;
+                    }
+                }
+
+                // 2. Process uploaded files and map them
+                let textureCounter = 0;
+                for (const [origPath, file] of Object.entries(textureFiles)) {
+                    // Generate a unique name for the texture in the mod
+                    // sanitize name: remove extension, replace spaces/special chars
+                    const safeName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_]/g, "_").toLowerCase();
+                    const internalName = `${safeName}_${textureCounter++}`; // ensure uniqueness
+                    const internalPath = `${MOD_ID}:block/${internalName}`;
+
+                    // Add file to zip
+                    zip.file(`assets/${MOD_ID}/textures/block/${internalName}.png`, file);
+
+                    // Update texture keys in the model
+                    const keysToUpdate = requiredTextures[origPath].keys;
+                    keysToUpdate.forEach(k => {
+                        newTextures[k] = internalPath;
+                    });
+                }
+
+                const finalModel = {
+                    parent: modelData.parent || "minecraft:block/block", // Use explicit namespace
+                    textures: newTextures,
+                    elements: modelData.elements,
+                    display: modelData.display || DISPLAY_SETTINGS,
+                    gui_light: modelData.gui_light || "side"
+                };
+
+                zip.file(`assets/${MOD_ID}/models/block/${BLOCK_ID}.json`, JSON.stringify(finalModel, null, 4));
+
+                // NEW: Add 1.21.2+ Item Model compatibility
+                const itemDefinition = {
+                    model: {
+                        type: "minecraft:model",
+                        model: `${MOD_ID}:item/${BLOCK_ID}`
+                    }
+                };
+                zip.file(`assets/${MOD_ID}/items/${BLOCK_ID}.json`, JSON.stringify(itemDefinition, null, 4));
+
+                const itemModel = {
+                    parent: `${MOD_ID}:block/${BLOCK_ID}`,
+                    textures: newTextures,
+                    display: modelData.display || DISPLAY_SETTINGS,
+                    gui_light: modelData.gui_light || "side"
+                };
+                zip.file(`assets/${MOD_ID}/models/item/${BLOCK_ID}.json`, JSON.stringify(itemModel, null, 4));
+
+                const lang = { [`block.${MOD_ID}.${BLOCK_ID}`]: name, [`item.${MOD_ID}.${BLOCK_ID}`]: name };
+                zip.file(`assets/${MOD_ID}/lang/ru_ru.json`, JSON.stringify(lang, null, 4));
+                zip.file(`assets/${MOD_ID}/lang/en_us.json`, JSON.stringify(lang, null, 4));
+
+                const content = await zip.generateAsync({ type: "blob" });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = `${name.replace(/\s+/g, '_')}_mod.jar`;
+                link.click();
+
+                btn.innerText = "✅ Готово!";
+                setTimeout(() => { btn.disabled = false; btn.innerText = "Создать файл мода"; }, 3000);
+
+            } catch (err) {
+                console.error(err);
+                alert("Ошибка сборки! Проверь консоль (F12) для деталей.");
+                btn.disabled = false;
+                btn.innerText = "Попробовать снова";
+            }
+        };
+    </script>
+
+</body>
+
+</html>

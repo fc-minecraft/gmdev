@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Текстуры Minecraft</title>
+    <style>
+        :root {
+            --bg: #f8fafb;
+            --surface: #ffffff;
+            --primary: #0061A4;
+            --on-primary: #ffffff;
+            --text: #191c1c;
+            --outline: #707979;
+            --radius-lg: 28px;
+            --radius-md: 16px;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header-top {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header-top h1 {
+            color: #000;
+            font-weight: 800;
+            font-size: 2.5rem;
+            margin: 0;
+        }
+
+        .header-ui {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        #searchInput {
+            width: 100%;
+            max-width: 600px;
+            padding: 16px 24px;
+            border-radius: 35px;
+            border: 1px solid var(--outline);
+            background: var(--surface);
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        #searchInput:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(0, 97, 164, 0.1);
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            max-width: 800px;
+        }
+
+        .filter-tag {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: #eee;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .filter-tag.active {
+            background: var(--primary);
+            color: var(--on-primary);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 30px 0 15px;
+            color: var(--primary);
+            border-bottom: 2px solid #eee;
+            padding-bottom: 8px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .img-container {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: #f0f0f0;
+            border-radius: var(--radius-md);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            background-image:
+                linear-gradient(45deg, #eee 25%, transparent 25%),
+                linear-gradient(-45deg, #eee 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #eee 75%),
+                linear-gradient(-45deg, transparent 75%, #eee 75%);
+            background-size: 20px 20px;
+        }
+
+        .texture-img {
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+            object-fit: contain;
+        }
+
+        .name-ru {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-align: center;
+            min-height: 2.6em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.3;
+        }
+
+        .name-en {
+            font-size: 0.8rem;
+            color: var(--outline);
+            margin-bottom: 20px;
+            text-align: center;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            line-height: 1.4;
+            opacity: 0.7;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 20px;
+            border: none;
+            background: #D3E4FF;
+            color: #001C38;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: auto;
+            transition: background 0.2s;
+        }
+
+        .download-btn:hover {
+            background: #B9D7FF;
+        }
+
+        #modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        #fullImg {
+            width: 512px;
+            height: 512px;
+            max-width: 90vw;
+            max-height: 70vh;
+            image-rendering: pixelated;
+            border-radius: 8px;
+            cursor: crosshair;
+            background: #eee;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+            object-fit: contain;
+        }
+
+        .color-info {
+            margin-top: 24px;
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 16px;
+        }
+
+        .color-box {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            border: 2px solid #ddd;
+        }
+
+        .color-values {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+        }
+
+        .copy-hint {
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+            margin-top: 4px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section {
+            animation: fadeInUp 0.5s ease-out both;
+        }
+
+        .card {
+            animation: fadeInUp 0.4s ease-out both;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header-top">
+            <h1>Материалы</h1>
+        </div>
+
+        <div class="header-ui">
+            <input type="text" id="searchInput" placeholder="Поиск (трава, дуб, золото)...">
+            <div class="filter-tags" id="filterTags"></div>
+        </div>
+
+        <div id="content">Загрузка данных из data.js...</div>
+    </div>
+
+    <div id="modal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <img id="fullImg">
+            <div class="color-info">
+                <div id="activeColor" class="color-box"></div>
+                <div class="color-values">
+                    <div id="hexVal">HEX: #FFFFFF</div>
+                    <div id="rgbVal">RGB: 255, 255, 255</div>
+                    <div id="copyHint" class="copy-hint">СКОПИРОВАН!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script>
+        let translations = {};
+        let currentFilter = 'Все';
+        let allFiles = [];
+
+        const RAW_LOCAL_PATH = 'blocks/';
+
+        const CATS = {
+            'Природа': ['stone', 'dirt', 'grass', 'sand', 'gravel', 'obsidian', 'ice', 'snow', 'basalt', 'tuff', 'calcite', 'deepslate'],
+            'Дерево': ['log', 'planks', 'leaves', 'stripped', 'wood', 'bamboo', 'mangrove', 'cherry', 'azalea'],
+            'Руды': ['ore', 'raw', 'block_gold', 'block_iron', 'block_diamond', 'block_emerald', 'netherite', 'copper', 'lapis', 'quartz'],
+            'Строительство': ['brick', 'terracotta', 'concrete', 'wool', 'glass', 'purpur', 'bookshelf', 'glazed', 'tiles', 'mud'],
+            'Механизмы': ['redstone', 'piston', 'observer', 'dispenser', 'lamp', 'hopper', 'command_block', 'sculk', 'dropper', 'note'],
+            'Остальное': []
+        };
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+        function init() {
+            if (typeof OFFLINE_DATA === 'undefined') {
+                document.getElementById('content').innerHTML = '<h2>Ошибка: data.js не найден или не загружен.</h2><p>Пожалуйста, запустите <b>download_assets.py</b> перед открытием этой страницы.</p>';
+                return;
+            }
+
+            translations = OFFLINE_DATA.translations;
+            allFiles = OFFLINE_DATA.files.map(name => ({ name }));
+
+            renderFilters();
+            render();
+        }
+
+        function renderFilters() {
+            const tags = document.getElementById('filterTags');
+            tags.innerHTML = '';
+
+            ['Все', ...Object.keys(CATS)].forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = `filter-tag ${cat === currentFilter ? 'active' : ''}`;
+                btn.innerText = cat;
+                btn.onclick = () => {
+                    currentFilter = cat;
+                    document.querySelectorAll('.filter-tag').forEach(t => t.classList.toggle('active', t.innerText === cat));
+                    render();
+                };
+                tags.appendChild(btn);
+            });
+        }
+
+        function getRuName(fileName) {
+            const id = fileName.replace('.png', '');
+            let name = translations[`block.minecraft.${id}`];
+
+            if (!name) {
+                const parts = id.split('_');
+                const suffixMap = {
+                    'side': '(сбоку)', 'top': '(сверху)', 'bottom': '(снизу)',
+                    'front': '(спереди)', 'back': '(сзади)', 'on': '(вкл)',
+                    'off': '(выкл)', 'lit': '(горит)', 'still': '(покой)',
+                    'flow': '(течет)', 'inner': '(внутри)', 'outer': '(снаружи)',
+                    'bottom_left': '(снизу слева)', 'bottom_right': '(снизу справа)',
+                    'top_left': '(сверху слева)', 'top_right': '(сверху справа)'
+                };
+
+                for (let i = parts.length - 1; i > 0; i--) {
+                    const baseId = parts.slice(0, i).join('_');
+                    const baseName = translations[`block.minecraft.${baseId}`];
+                    if (baseName) {
+                        const suffixes = parts.slice(i).map(s => suffixMap[s] || s);
+                        return `${baseName} ${suffixes.join(' ')}`;
+                    }
+                }
+                return fileName;
+            }
+            return name;
+        }
+
+        function render() {
+            const content = document.getElementById('content');
+            content.innerHTML = '';
+
+            const groups = {};
+            Object.keys(CATS).forEach(c => groups[c] = []);
+
+            allFiles.forEach(file => {
+                let found = false;
+                for (const [cat, keywords] of Object.entries(CATS)) {
+                    if (keywords.some(kw => file.name.includes(kw))) {
+                        groups[cat].push(file);
+                        found = true; break;
+                    }
+                }
+                if (!found) groups['Остальное'].push(file);
+            });
+
+            for (const [title, items] of Object.entries(groups)) {
+                if (currentFilter !== 'Все' && title !== currentFilter) continue;
+                if (items.length === 0) continue;
+
+                const sec = document.createElement('div');
+                sec.className = 'section';
+                sec.innerHTML = `<h2 class="section-title">${title}</h2><div class="grid"></div>`;
+                const grid = sec.querySelector('.grid');
+
+                items.forEach(file => {
+                    const url = RAW_LOCAL_PATH + file.name;
+                    const ruName = getRuName(file.name);
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.dataset.search = (ruName + ' ' + file.name).toLowerCase();
+                    card.onclick = (e) => { if (e.target.tagName !== 'BUTTON') openModal(url); };
+                    card.innerHTML = `
+                        <div class="img-container">
+                            <img src="${url}" class="texture-img" loading="lazy">
+                        </div>
+                        <div class="name-ru">${ruName}</div>
+                        <div class="name-en">${file.name}</div>
+                        <a href="${url}" download="${file.name}" style="text-decoration:none">
+                            <button class="download-btn" onclick="event.stopPropagation();">СКАЧАТЬ</button>
+                        </a>
+                    `;
+                    grid.appendChild(card);
+                });
+                content.appendChild(sec);
+            }
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            if (q) performSearch(q);
+        }
+
+        function openModal(url) {
+            const m = document.getElementById('modal');
+            const img = document.getElementById('fullImg');
+            img.src = url;
+            m.style.display = 'flex';
+            img.onload = () => {
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                ctx.drawImage(img, 0, 0);
+            };
+        }
+
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
+        document.getElementById('fullImg').onclick = function (e) {
+            const r = this.getBoundingClientRect();
+            const x = Math.floor((e.clientX - r.left) * (canvas.width / r.width));
+            const y = Math.floor((e.clientY - r.top) * (canvas.height / r.height));
+            const p = ctx.getImageData(x, y, 1, 1).data;
+            const hex = "#" + ((1 << 24) + (p[0] << 16) + (p[1] << 8) + p[2]).toString(16).slice(1).toUpperCase();
+
+            document.getElementById('activeColor').style.background = hex;
+            document.getElementById('hexVal').innerText = `HEX: ${hex}`;
+            document.getElementById('rgbVal').innerText = `RGB: ${p[0]}, ${p[1]}, ${p[2]}`;
+            navigator.clipboard.writeText(hex);
+            const hint = document.getElementById('copyHint');
+            hint.style.opacity = 1; setTimeout(() => hint.style.opacity = 0, 1000);
+        };
+
+        function performSearch(q) {
+            document.querySelectorAll('.card').forEach(c => c.classList.toggle('hidden', !c.dataset.search.includes(q)));
+            document.querySelectorAll('.section').forEach(s => {
+                const v = s.querySelectorAll('.card:not(.hidden)').length > 0;
+                s.classList.toggle('hidden', !v);
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            performSearch(e.target.value.toLowerCase());
+        });
+
+        init();
+    </script>
+</body>
+
+</html>
